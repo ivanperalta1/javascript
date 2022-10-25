@@ -1,49 +1,120 @@
-class Usuario {
+/*class Usuario {
 
-    constructor(nombre, apellido, contrasenia) {
+    constructor(nombre, mail, pass) {
         this.nombre = nombre.toUpperCase();
-        this.apellido = apellido.toUpperCase();
-        this.contrasenia = contrasenia;
+        this.mail = mail.toUpperCase();
+        this.pass = pass;
+    }
+}*/
+const usuarios = [{
+    nombre: 'prueba',
+    mail: 'prueba@mail.com',
+    pass: '1569'
+},
+{
+    nombre:'ivan',
+    mail:'peralta@mail.com',
+    pass:'qwerty123'
+} ,   
+{
+    nombre:'lionel',
+    mail:'messi@mail.com',
+    pass:'qwerty321'
+},      
+{
+    nombre:'florencia',
+    mail:'hendel@mail.com',
+    pass:'lalala1'
+}];
+
+const mailLogin = document.getElementById('mailLogin'),
+    passLogin = document.getElementById('passwordLogin'),
+    recordar = document.getElementById('recordarme'),
+    btnLogin = document.getElementById('login'),
+    modalEl = document.getElementById('modalLogin'),
+    modal = new bootstrap.Modal(modalEl),
+   contTarjetas = document.getElementById('tarjetas'),
+    toggles = document.querySelectorAll('.toggles');
+
+function validarUsuario(userDB,user, pass){
+    let encontrado = userDB.find(userDB => userDB.mail == user);
+    if (typeof encontrado === 'undefined') {
+        return false;
+    } else {
+        if (encontrado.pass!=pass){
+            return false;
+        } else {
+             return encontrado;
+        }
     }
 }
-const usuarios= [
-    new Usuario('pruebaNombre','pruebaApellido', '1569'),
-    new Usuario( 'Ivan', 'Peralta', 'Qwerty123'),
-    new Usuario('Lionel', 'Messi', 'Qwerty321'),
-    new Usuario('Florencia', 'Hendel','lalala1')];
-    console.log(usuarios);
+function guardarDatos(usuarioDB, storage) {
+    const usuario = {
+        'name': usuarioDB.nombre,
+        'user': usuarioDB.mail,
+        'pass': usuarioDB.pass,
+    }
+    storage.setItem('usuario', JSON.stringify(usuario));
+}
 
+function saludar(usuario) {
+    nombreUsuario.innerHTML = `Bienvenido/a, <span>${usuario.nombre}</span>`
+}
+function borrarDatos() {
+    localStorage.clear();
+    sessionStorage.clear();
+}
 
-let nombreIngresado = prompt('Ingrese su nombre');
-let apellidoIngresado = prompt('Ingrese su apellido');
-let contraseniaIngresada = prompt('Ingrese su nueva contraseña');
+function recuperarUsuario(storage) {
+    let usuarioEnStorage = JSON.parse(storage.getItem('usuario'));
+    return usuarioEnStorage;
+}
+function estaLogueado(usuario) {
+    if (usuario) {
+        saludar(usuario);
+        presentarInfo(toggles, 'd-none');
+    }
+}
+function presentarInfo(array, clase) {
+    array.forEach(element => {
+        element.classList.toggle(clase);
+    })
+}
 
-const usuario = new Usuario(nombreIngresado, apellidoIngresado, contraseniaIngresada);
-usuarios.push(usuario);
+btnLogin.addEventListener('click',(e) => {
+    e.preventDefault();
 
-const filtrado = usuarios.filter((Usuario)=>Usuario.contrasenia.toUpperCase().includes(contraseniaIngresada.toLocaleUpperCase()));
-
-console.log(filtrado);
-
-function login() {
-    let ingresar = false;
-
-    for (let i = 2; i >= 0; i--) {
-        let userPIN = prompt('Ingresa tu constraseña. Tienes ' + (i + 1) + ' intentos');
-        if (userPIN === contraseniaIngresada) {
-            alert('hola ' + nombreIngresado + ' bienvenida/o al simulador de plazo fijo.');;
-            ingresar = true;
-            break;
-        }
-        else {
-            alert('ERROR. TE QUEDAN ' + i + ' intentos')
+    if (!mailLogin.value || !passLogin.value) {
+        alert('Todos los campos son requeridos para el ingreso');
+    } else {
+        let data = validarUsuario(usuarios,mailLogin.Value,passLogin.value);
+        if (!data) {
+            alert('Usuario y/o contraseña incorrectos');
+        } else {
+            if (recordar.checked) {
+                guardarDatos(data, localStorage);
+                saludar(recuperarUsuario(localStorage));
+            } else {
+                guardarDatos(data, sessionStorage);
+                saludar(recuperarUsuario(sessionStorage));
+            }
+            modal.hide()
+            presentarInfo(toggles, 'd-none');
         }
     }
-    return ingresar;
+})
+
+btnLogout.addEventListener('click', (e) => {
+    borrarDatos();
+    presentarInfo(toggles, 'd-none');
+})
+
+window.onload = () => {
+    estaLogueado(recuperarUsuario(localStorage));
 }
 
 let tasa = 75;
-if (login()) {
+if (estaLogueado()) {
     let opcion = prompt('ingrese una opcion: \n1- Conocé la tasa vigente. \n2- Simulador de plazo fijo. \n3- Politica de inversion. \n Presiona X para finalizar.');
     while (opcion != 'X' && opcion != 'x') {
         switch (opcion) {
