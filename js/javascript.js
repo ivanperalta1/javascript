@@ -1,75 +1,83 @@
-/*class Usuario {
+//BASE DE DATO CREADA PARA EL LOGIN
+const usuarios = [
+    { nombre: "Ivan", mail: "peralta@hotmail.com", pass: "1234" },
+    { nombre: "Lionel", mail: "messi@hotmail.com", pass: "argentina" },
+    { nombre: "Florencia", mail: "hendel@hotmail.com", pass: "holamundo" },
+    { nombre: "Aldana", mail: "ludueña@hotmail.com", pass: "lala" }]
+//BASE DE DATOS FAKE CON LAS CUENTAS DEL USUARIO LOGUEADO
+const cuentasUsuarioIngresado = [
+    { tipo: 'pesos', simbolo: '$', numero: '1', saldo: 50000 },
+    { tipo: 'pesos', simbolo: '$', numero: '3', saldo: 100000 },
+    { tipo: 'dolares', simbolo: 'u$s', numero: '2', saldo: 5000 },
+    { tipo: 'dolares', simbolo: 'u$s', numero: '4', saldo: 10000 }]
 
-    constructor(nombre, mail, pass) {
-        this.nombre = nombre.toUpperCase();
-        this.mail = mail.toUpperCase();
-        this.pass = pass;
-    }
-}*/
-const usuarios = [{
-    nombre: 'prueba',
-    mail: 'prueba@mail.com',
-    pass: '1569'
-},
-{
-    nombre:'ivan',
-    mail:'peralta@mail.com',
-    pass:'qwerty123'
-} ,   
-{
-    nombre:'lionel',
-    mail:'messi@mail.com',
-    pass:'qwerty321'
-},      
-{
-    nombre:'florencia',
-    mail:'hendel@mail.com',
-    pass:'lalala1'
-}];
-
-const mailLogin = document.getElementById('mailLogin'),
+//ELEMENTOS DEL DOM QUE VOY A NECESITAR CONSUMIR
+const mailLogin = document.getElementById('emailLogin'),
     passLogin = document.getElementById('passwordLogin'),
     recordar = document.getElementById('recordarme'),
     btnLogin = document.getElementById('login'),
     modalEl = document.getElementById('modalLogin'),
     modal = new bootstrap.Modal(modalEl),
-   contTarjetas = document.getElementById('tarjetas'),
-    toggles = document.querySelectorAll('.toggles');
+    toggles = document.querySelectorAll('.toggles'),
 
-function validarUsuario(userDB,user, pass){
-    let encontrado = userDB.find(userDB => userDB.mail == user);
+    btnSiguiente = document.getElementById('btnSiguiente'),
+    btnCancelar = document.getElementById('btnCancelar'),
+    btnUltima = document.getElementById('btnUltima'),
+    btnVolver = document.getElementById('btnVolver'),
+    formDatos = document.getElementById('ingresoDatosPF'),
+    monto = document.getElementById('monto'),
+    dias = document.getElementById('dias'),
+    cuentas = document.getElementById('cuentas'),
+    tipoPF = document.getElementById('tipoPF'),
+    checkDatos = document.getElementById('guardarDatos'),
+    cardIngreso = document.querySelector('.cardIngreso'),
+    confirmacion = document.querySelector('.confirmacion');
+
+//LLAME A LA API DE BCRA PERO NO PUDO CONECTARME POR LO QUE HARDCODIE LAS TASAS.
+/*fetch("https://api.estadisticasbcra.com/plazo_fijo",{
+    headers:{
+        authorization:"BEARER eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2OTk3MzgyNDksInR5cGUiOiJleHRlcm5hbCIsInVzZXIiOiJpdmFuX2xwMjJAaG90bWFpbC5jb20ifQ.28XXv6OhxXU0XN680aJ_O8_d8It98hOMVmNhvLilhn8Ji9u6fTIfsLWmsEdDDyflQVEEllvtrgKLKcfvO6sXZw"
+    },
+})
+.then((respone)=>response.JSON())
+.then((data)=>{
+    console.log(data)
+})*/
+let tasaPesos = 0.75;
+let tasaDorales = 0.01;
+function validarUsuario(usersDB, user, pass) {
+    let encontrado = usersDB.find(userDB => userDB.mail == user);
     if (typeof encontrado === 'undefined') {
         return false;
     } else {
-        if (encontrado.pass!=pass){
-            return false;
+        if (encontrado.pass != pass) {
+        return false;
         } else {
-             return encontrado;
+            return encontrado;
         }
     }
 }
-function guardarDatos(usuarioDB, storage) {
+function guardarDatos(usuarioDB, storege) {
     const usuario = {
         'name': usuarioDB.nombre,
         'user': usuarioDB.mail,
         'pass': usuarioDB.pass,
     }
-    storage.setItem('usuario', JSON.stringify(usuario));
+    storege.setItem('usuario', JSON.stringify(usuario));
 }
 
 function saludar(usuario) {
-    nombreUsuario.innerHTML = `Bienvenido/a, <span>${usuario.nombre}</span>`
+    nombreUsuario.innerHTML = `Bienvenido/a <span>${usuario.name} </span>`
 }
 function borrarDatos() {
     localStorage.clear();
     sessionStorage.clear();
 }
-
 function recuperarUsuario(storage) {
     let usuarioEnStorage = JSON.parse(storage.getItem('usuario'));
     return usuarioEnStorage;
 }
-function estaLogueado(usuario) {
+function estaLogeado(usuario) {
     if (usuario) {
         saludar(usuario);
         presentarInfo(toggles, 'd-none');
@@ -78,18 +86,26 @@ function estaLogueado(usuario) {
 function presentarInfo(array, clase) {
     array.forEach(element => {
         element.classList.toggle(clase);
-    })
+    });
 }
 
-btnLogin.addEventListener('click',(e) => {
+btnLogin.addEventListener('click', (e) => {
     e.preventDefault();
 
     if (!mailLogin.value || !passLogin.value) {
-        alert('Todos los campos son requeridos para el ingreso');
+        Swal.fire({
+            icon: 'error',
+            title: 'Ocurrio un error',
+            text: 'Todos los campos son requeridos',
+          });
     } else {
-        let data = validarUsuario(usuarios,mailLogin.Value,passLogin.value);
+        let data = validarUsuario(usuarios, mailLogin.value, passLogin.value);
         if (!data) {
-            alert('Usuario y/o contraseña incorrectos');
+            Swal.fire({
+                icon: 'error',
+                title: 'Usuario y/o contraseña incorrecto',
+                text: 'Por favor verifique los datos ingresados.',
+              });;
         } else {
             if (recordar.checked) {
                 guardarDatos(data, localStorage);
@@ -97,52 +113,130 @@ btnLogin.addEventListener('click',(e) => {
             } else {
                 guardarDatos(data, sessionStorage);
                 saludar(recuperarUsuario(sessionStorage));
+
             }
-            modal.hide()
-            presentarInfo(toggles, 'd-none');
         }
+        modal.hide();
+        presentarInfo(toggles, 'd-none');
     }
 })
 
-btnLogout.addEventListener('click', (e) => {
+btnLogout.addEventListener('click', () => {
     borrarDatos();
     presentarInfo(toggles, 'd-none');
 })
 
 window.onload = () => {
-    estaLogueado(recuperarUsuario(localStorage));
+    estaLogeado(recuperarUsuario(localStorage));
+    mostrarCuentas(elegirTipoCuenta(cuentasUsuarioIngresado,tipoPF.value));
+}
+tipoPF.onchange =()=>{
+    cuentas.innerHTML='';
+    mostrarCuentas(elegirTipoCuenta(cuentasUsuarioIngresado,tipoPF.value))
 }
 
-let tasa = 75;
-if (estaLogueado()) {
-    let opcion = prompt('ingrese una opcion: \n1- Conocé la tasa vigente. \n2- Simulador de plazo fijo. \n3- Politica de inversion. \n Presiona X para finalizar.');
-    while (opcion != 'X' && opcion != 'x') {
-        switch (opcion) {
-            case '1':
-                alert('La tasa de interes en nuestros plazos fijos es de ' + tasa + '% anual. Esto es equivalente a un rendimiento diario de ' + tasa / 365 + ' %');
-                break;
-            case '2':
-                let capital = parseFloat(prompt('ingrese la cantidad de dinero a invertir'));
-                let dias = parseFloat(prompt('Ingrese la cantidad de dias que desea establecer el plazo fijo'));
-                if (capital >= 1000 && dias >= 30) {
+class PlazoFijo {
+    constructor(monto, dias, numeroCuenta, tipoPF) {
+        this.monto = parseFloat(monto);
+        this.dias = parseInt(dias);
+        this.numeroCuenta = numeroCuenta;
+        this.tipoPF = tipoPF}}
 
-                    let resultado = (capital * dias);
-                    let resultado1 = (resultado * ((tasa / 100) / 365));
-                    alert('En base a su capital, el rendimiento esperado para la cantidad de dias seleccionado es de $ ' + resultado1);
-                    alert('Al final de los ' + dias + ' dias seleccionados, se le acreditara $' + capital + resultado1 + ' a su cuenta.');
-                }
-                else { alert('Por favor revise nuestra politica de inversion.'); }
+function elegirTipoCuenta(cuentasUsuario, tipo) {
+    return cuentasUsuario.filter(cuenta => cuenta.tipo == tipo)
+}
+function mostrarCuentas(cuentasUsuario) {
+    for (const cuenta of cuentasUsuario) {
+        let option = `<option value="${cuenta.numero}" id="cuenta${cuenta.numero}">CA ${cuenta.simbolo} Nº ${cuenta.numero} - ${cuenta.simbolo} ${cuenta.saldo}</option>`
+        cuentas.innerHTML+=option;    }}
+function crearObjetoPF(){
+    return new PlazoFijo(monto.value, dias.value, cuentas.value, tipoPF.value);
+}
+function guardarPFenStorage(pf){
+    localStorage.setItem('plazoFijo', JSON.stringify(pf));
+}
 
-                break;
-            default:
-                alert('elegiste una opcion invalida');
-                break;
-            case '3':
-                alert('El monto minimo de inversion es de $1000 y el plazo minimo es de 30 dias.')
-
-        }
-        opcion = prompt('ingrese una opcion: \n1- Conocé la tasa vigente. \n2- simulador de plazo fijo. \n3- Politica de inversion.\n Presiona X para finalizar.');
+function recuperarPFDeStorage(pf){
+    let plazoFijo = JSON.parse(localStorage.getItem(pf));
+    if(plazoFijo==null){
+        return false;
+    }else{
+        return plazoFijo;
     }
-} else { alert('Te enviamos un correo para blanquear tu clave. Revisa tu casilla') };
+}
+function calcularIntereses(pf,tasaPesos,tasaDolares){
+    let intereses;
+    if(pf.tipoPF =='pesos'){
+        intereses = (pf.monto*(tasaPesos / 365 * pf.dias));
+        intereses = parseFloat(intereses.toFixed(2));
+    }
+    return intereses;
+}
+function calcularGananciaBruta(intereses,capital){
+    return intereses + capital;
+}
+function calcularFechaAcreditacion(pf){
+    let acreditacion = new Date();
+    acreditacion.setDate(acreditacion.getDate()+pf.dias)
+    return acreditacion.toLocaleDateString();
+}
+function mostrarCalculado(pf){
+    const fecha= calcularFechaAcreditacion(pf);
+    const intereses = calcularIntereses(pf, tasaPesos, tasaDorales);
+    const total = calcularGananciaBruta(intereses,pf.monto);
+    return resultado = {
+        'acreditacion': fecha,
+        'intereses': intereses,
+        'total': total
+    }
+}
 
-alert('Muchas gracias por utilizar nuestro simulador. Adios!')
+function crearHTMLinfoUsuario(pf,calculo){
+    let lista = confirmacion.querySelector('ul');
+    let items= [];
+    for (const dato in pf){
+        let li =  ` <li>${dato}: ${pf[dato]}</li>`;
+        items.push(li);}
+    for (const dato in calculo) {
+    let li = ` <li>${dato}: ${calculo[dato]}</li>`;
+    items.push(li);}
+    for (const item of items) {
+        lista.insertAdjacentHTML('beforeend', item);
+    }
+}
+
+
+btnSiguiente.addEventListener('click',()=>
+{
+    const datosPF = crearObjetoPF();
+    if(checkDatos.checked){
+        guardarPFenStorage(datosPF);
+    }
+    cardIngreso.classList.replace('visible','oculta');
+    confirmacion.classList.replace('oculta','visible');
+    crearHTMLinfoUsuario(datosPF,mostrarCalculado(datosPF));
+    formDatos.reset();
+});
+btnCancelar.addEventListener('click', () => {
+    formDatos.reset();
+});
+btnUltima.addEventListener('click',()=>{
+    let guardado = recuperarPFDeStorage('plazoFijo');
+    if(!guardado){
+        Swal.fire({
+            icon: 'error',
+            title: 'Ocurrio un error',
+            text: 'No se encontraron simulaciones anteriores.',
+          });
+    }else{
+        cardIngreso.classList.replace('visible','oculta');
+        confirmacion.classList.replace('oculta','visible');
+        crearHTMLinfoUsuario(guardado, mostrarCalculado(guardado));
+        formDatos.reset();
+    }
+})
+btnVolver.addEventListener('click', () => {
+    cardIngreso.classList.replace('oculta', 'visible');
+    confirmacion.classList.replace('visible', 'oculta');
+    confirmacion.querySelector('ul').innerHTML = '';
+})
